@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alyssa's Hogwarts Word Search</title>
+<style>
+:root{--ink:#3b2a1a;--g:#7f0909;--gold:#d3a625;--sl:#1a472a;--rv:#0e1a40;--hf:#ecb939}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--ink);background:#e9dcc0 radial-gradient(circle at 30% 20%,#f6ecd2,#e2cfa6 70%,#cdb383);min-height:100vh}
+header{text-align:center;padding:12px 8px 4px}
+h1{margin:0;font-size:clamp(1.4rem,4vw,2.3rem);color:var(--g);text-shadow:1px 1px 0 var(--gold)}
+.houses{height:6px;background:linear-gradient(90deg,var(--g) 25%,var(--hf) 25% 50%,var(--rv) 50% 75%,var(--sl) 75%);margin:8px auto;max-width:600px;border-radius:3px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:6px}
+button{font:inherit;font-size:1rem;padding:8px 14px;border-radius:8px;border:2px solid var(--gold);background:var(--g);color:#fff;cursor:pointer}
+button.alt{background:var(--rv)}
+label{font-size:1rem}
+#timer{font-weight:bold;font-size:1.1rem;min-width:70px}
+main{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:8px}
+#grid{display:grid;touch-action:none;user-select:none;-webkit-user-select:none;background:#fbf4e1;border:4px double var(--ink);border-radius:10px;padding:6px;width:min(94vw,620px);aspect-ratio:1}
+.c{display:flex;align-items:center;justify-content:center;font-family:Verdana,Arial,sans-serif;font-weight:bold;font-size:clamp(.7rem,2.6vw,1.15rem);border-radius:50%;cursor:pointer}
+.c.sel{background:#f3d77a}
+.c.f0{background:#e8a3a3}.c.f1{background:#f5d97a}.c.f2{background:#a9b8e8}.c.f3{background:#9fd3ae}
+.c.rev{background:#ddd;color:#999}
+#words{list-style:none;padding:12px 18px;margin:0;background:#fbf4e1;border:2px solid var(--ink);border-radius:10px;columns:2;font-size:1.1rem;min-width:260px;align-self:flex-start}
+#words li{padding:3px 0}
+#words li.done{text-decoration:line-through;color:#8a7a62}
+#msg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center}
+#msg div{background:#fbf4e1;border:4px solid var(--gold);border-radius:14px;padding:24px;text-align:center;max-width:90vw}
+#msg h2{color:var(--g);font-size:2rem;margin:.2em}
+</style></head><body>
+<header><h1>🦉 Alyssa's Hogwarts Word Search</h1><div class="houses"></div>
+<div class="bar"><span id="timer">0:00</span><span id="count"></span>
+<button id="new">New puzzle</button><button id="reveal" class="alt">Reveal</button>
+<label><input type="checkbox" id="hard"> Hard mode (backwards)</label></div></header>
+<main><div id="grid"></div><ul id="words"></ul></main>
+<div id="msg"><div><div style="font-size:3rem">🦉✨</div><h2>Mischief managed!</h2><p id="mt"></p><button id="again">Play again</button></div></div>
+<script>
+const WORDS=["stratify","sponsor","disorient","streamline","stratosphere","sporadic","stimulate","spindly","steadfast","dishonour","sprightly","disarray","disassociate","stupendous","disrespect","spectator","spacious","disappoint","disembark","disassemble"];
+const N=18;
+function makePuzzle(words,n,hard,rnd=Math.random){
+ let dirs=[[0,1],[1,0],[1,1],[-1,1]];
+ if(hard)dirs=dirs.concat(dirs.map(([a,b])=>[-a,-b]));
+ for(let attempt=0;attempt<200;attempt++){
+  const g=Array.from({length:n},()=>Array(n).fill(null)),pl={};let ok=true;
+  for(const w of [...words].sort((a,b)=>b.length-a.length)){
+   const W=w.toUpperCase();let done=false;
+   for(let t=0;t<500&&!done;t++){
+    const[dr,dc]=dirs[Math.floor(rnd()*dirs.length)],r=Math.floor(rnd()*n),c=Math.floor(rnd()*n);
+    const er=r+dr*(W.length-1),ec=c+dc*(W.length-1);
+    if(er<0||er>=n||ec<0||ec>=n)continue;
+    let fit=true;for(let i=0;i<W.length;i++){const x=g[r+dr*i][c+dc*i];if(x&&x!==W[i]){fit=false;break}}
+    if(!fit)continue;
+    const cells=[];for(let i=0;i<W.length;i++){g[r+dr*i][c+dc*i]=W[i];cells.push([r+dr*i,c+dc*i])}
+    pl[w]=cells;done=true;
+   }
+   if(!done){ok=false;break}
+  }
+  if(ok){const A="ABCDEFGHIJKLMNOPQRSTUVWXYZ";for(const row of g)for(let j=0;j<n;j++)if(!row[j])row[j]=A[Math.floor(rnd()*26)];return{grid:g,placed:pl}}
+ }
+ throw new Error("placement failed");
+}
+if(typeof module!=="undefined"){module.exports={makePuzzle,WORDS,N}}
+else{
+const G=document.getElementById("grid"),L=document.getElementById("words");
+let P,found,cells,start=null,cur=[],t0,tick,fc=0;
+function key(a){return a.join(",")}
+function init(){
+ P=makePuzzle(WORDS,N,document.getElementById("hard").checked);found=new Set();fc=0;
+ G.style.gridTemplateColumns=`repeat(${N},1fr)`;G.innerHTML="";cells=[];
+ P.grid.forEach((row,r)=>row.forEach((ch,c)=>{const d=document.createElement("div");d.className="c";d.textContent=ch;d.dataset.r=r;d.dataset.c=c;G.appendChild(d);cells.push(d)}));
+ L.innerHTML=WORDS.map(w=>`<li id="w-${w}">${w}</li>`).join("");
+ clearInterval(tick);t0=Date.now();tick=setInterval(upd,1000);upd();count();document.getElementById("msg").style.display="none";
+}
+function el(r,c){return cells[r*N+c]}
+function upd(){const s=Math.floor((Date.now()-t0)/1000);document.getElementById("timer").textContent=`⏱ ${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`}
+function count(){document.getElementById("count").textContent=`${found.size}/${WORDS.length} found`}
+function line(a,b){const dr=b[0]-a[0],dc=b[1]-a[1];if(dr&&dc&&Math.abs(dr)!==Math.abs(dc))return null;if(!dr&&!dc)return[a];
+ const len=Math.max(Math.abs(dr),Math.abs(dc)),sr=Math.sign(dr),sc=Math.sign(dc),o=[];for(let i=0;i<=len;i++)o.push([a[0]+sr*i,a[1]+sc*i]);return o}
+function cellAt(x,y){const e=document.elementFromPoint(x,y);return e&&e.classList.contains("c")?[+e.dataset.r,+e.dataset.c]:null}
+function show(){cells.forEach(d=>d.classList.remove("sel"));cur.forEach(([r,c])=>el(r,c).classList.add("sel"))}
+G.addEventListener("pointerdown",e=>{const p=cellAt(e.clientX,e.clientY);if(!p)return;e.preventDefault();start=p;cur=[p];show();G.setPointerCapture&&G.setPointerCapture(e.pointerId)});
+G.addEventListener("pointermove",e=>{if(!start)return;const p=cellAt(e.clientX,e.clientY);if(!p)return;const l=line(start,p);if(l){cur=l;show()}});
+addEventListener("pointerup",()=>{if(!start)return;check();start=null;cur=[];show()});
+addEventListener("pointercancel",()=>{start=null;cur=[];show()});
+function check(){const k=cur.map(key).join("|"),kr=[...cur].reverse().map(key).join("|");
+ for(const w of WORDS){if(found.has(w))continue;const pk=P.placed[w].map(key).join("|");if(pk===k||pk===kr){mark(w,"f"+(fc++%4));return}}}
+function mark(w,cls){found.add(w);P.placed[w].forEach(([r,c])=>el(r,c).classList.add(cls));document.getElementById("w-"+w).classList.add("done");count();
+ if(found.size===WORDS.length){clearInterval(tick);if(cls!=="rev"){document.getElementById("mt").textContent=`You found all ${WORDS.length} words in ${document.getElementById("timer").textContent.replace("⏱ ","")}. 10 points to your house!`;document.getElementById("msg").style.display="flex"}}}
+document.getElementById("new").onclick=init;document.getElementById("again").onclick=init;document.getElementById("hard").onchange=init;
+document.getElementById("reveal").onclick=()=>WORDS.forEach(w=>{if(!found.has(w))mark(w,"rev")});
+init();}
+</script></body></html>

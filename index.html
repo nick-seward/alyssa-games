@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alyssa's Hogwarts Learning Games</title>
+<style>
+:root{--ink:#3b2a1a;--g:#7f0909;--gold:#d3a625;--sl:#1a472a;--rv:#0e1a40;--hf:#ecb939}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--ink);background:#e9dcc0 radial-gradient(circle at 30% 20%,#f6ecd2,#e2cfa6 70%,#cdb383);min-height:100vh}
+header{text-align:center;padding:20px 12px 6px}
+.owl{font-size:clamp(3rem,10vw,4.5rem);display:inline-block;animation:fly 3s ease-in-out infinite}
+@keyframes fly{50%{transform:translateY(-8px) rotate(-4deg)}}
+h1{margin:0;font-size:clamp(1.6rem,5vw,2.6rem);color:var(--g);text-shadow:1px 1px 0 var(--gold)}
+.sub{font-style:italic;margin:6px 0}
+.houses{height:6px;background:linear-gradient(90deg,var(--g) 25%,var(--hf) 25% 50%,var(--rv) 50% 75%,var(--sl) 75%);margin:10px auto;max-width:600px;border-radius:3px}
+main{max-width:960px;margin:0 auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+a.card{display:block;text-decoration:none;color:var(--ink);background:#fbf4e1;border:4px double var(--ink);border-top:10px solid var(--c);border-radius:12px;padding:16px;box-shadow:0 4px 10px rgba(59,42,26,.25);transition:transform .15s,box-shadow .15s}
+a.card:hover,a.card:focus{transform:translateY(-4px);box-shadow:0 8px 16px rgba(59,42,26,.35)}
+.icon{font-size:2.4rem}
+.wk{font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;color:var(--c);font-weight:bold}
+.card h2{margin:4px 0 6px;font-size:1.35rem;color:var(--g)}
+.card p{margin:0 0 10px}
+.tags span{display:inline-block;font-size:.8rem;background:#f3e2b3;border:1px solid var(--gold);border-radius:10px;padding:2px 8px;margin:2px}
+footer{text-align:center;font-size:.9rem;padding:20px;color:#6b5840}
+</style></head><body>
+<header><div class="owl">🦉</div><h1>Alyssa's Hogwarts Learning Games</h1>
+<p class="sub">"It is our choices that show what we truly are." Choose your next lesson!</p><div class="houses"></div></header>
+<main id="games"></main>
+<footer>⚡ Mischief managed ⚡</footer>
+<script>
+// To add a game: put it in its own folder (e.g. week-7-something/index.html) and add an entry here.
+// colour: one of gryffindor, hufflepuff, ravenclaw, slytherin
+const GAMES=[
+ {week:5,title:"Word Search",icon:"🔍",path:"week-5-word-search/",colour:"gryffindor",
+  desc:"Find 20 spelling words hidden in a magical grid. Try hard mode for backwards words!",tags:["st/sp blends","dis- prefix"]},
+ {week:6,title:"Word Scramble",icon:"🔀",path:"week-6-word-scramble/",colour:"ravenclaw",
+  desc:"Unscramble 20 spelling words using the clues and win house points.",tags:["-able suffix","tr/dr blends"]},
+];
+const C={gryffindor:"#7f0909",hufflepuff:"#b8860b",ravenclaw:"#0e1a40",slytherin:"#1a472a"};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+document.getElementById("games").innerHTML=[...GAMES].sort((a,b)=>b.week-a.week).map(g=>
+ `<a class="card" href="${esc(g.path)}" style="--c:${C[g.colour]||C.gryffindor}"><div class="icon">${g.icon}</div><div class="wk">Week ${g.week}</div><h2>${esc(g.title)}</h2><p>${esc(g.desc)}</p><div class="tags">${(g.tags||[]).map(t=>`<span>${esc(t)}</span>`).join("")}</div></a>`).join("");
+</script>
+</body></html>

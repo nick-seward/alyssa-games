@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alyssa's Hogwarts Word Scramble</title>
+<style>
+:root{--ink:#3b2a1a;--g:#7f0909;--gold:#d3a625;--sl:#1a472a;--rv:#0e1a40;--hf:#ecb939}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--ink);background:#e9dcc0 radial-gradient(circle at 30% 20%,#f6ecd2,#e2cfa6 70%,#cdb383);min-height:100vh}
+header{text-align:center;padding:12px 8px 4px}
+h1{margin:0;font-size:clamp(1.4rem,4vw,2.3rem);color:var(--g);text-shadow:1px 1px 0 var(--gold)}
+.houses{height:6px;background:linear-gradient(90deg,var(--g) 25%,var(--hf) 25% 50%,var(--rv) 50% 75%,var(--sl) 75%);margin:8px auto;max-width:600px;border-radius:3px}
+.home{display:inline-block;margin-top:4px;color:var(--rv);font-size:.95rem}
+.bar{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center;margin:6px;font-size:1.1rem;font-weight:bold}
+.prog{width:min(90vw,520px);height:10px;margin:4px auto 0;background:#fbf4e1;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.prog div{height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--gold));transition:width .4s}
+main{max-width:720px;margin:0 auto;padding:8px 12px 24px}
+.card{background:#fbf4e1;border:4px double var(--ink);border-radius:12px;padding:16px;text-align:center}
+.clue{font-size:clamp(1rem,2.6vw,1.2rem);margin:0 0 10px;font-style:italic}
+.clue b{font-style:normal;color:var(--g)}
+.len{font-size:.9rem;color:#7a6650;margin-bottom:8px}
+button{font:inherit;font-size:1rem;padding:9px 14px;border-radius:8px;border:2px solid var(--gold);background:var(--g);color:#fff;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.45;cursor:default}
+button.alt{background:var(--rv)}button.green{background:var(--sl)}button.yel{background:var(--hf);color:var(--ink)}
+#tiles{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0;user-select:none;-webkit-user-select:none}
+.tile{width:clamp(34px,8.5vw,50px);height:clamp(40px,10vw,56px);padding:0;font-family:Verdana,Arial,sans-serif;font-weight:bold;font-size:clamp(1.1rem,4vw,1.6rem);background:#f3e2b3;color:var(--ink);border:2px solid var(--ink);border-radius:8px;box-shadow:0 3px 0 #a88a5a}
+.tile.used{visibility:hidden}
+#ans{font:inherit;font-family:Verdana,Arial,sans-serif;font-weight:bold;letter-spacing:.12em;text-transform:uppercase;font-size:clamp(1.1rem,4.5vw,1.6rem);text-align:center;width:min(100%,460px);padding:8px;border:3px solid var(--gold);border-radius:10px;background:#fffaf0;color:var(--ink)}
+#ans.bad{animation:shake .4s;border-color:var(--g)}
+#ans.good{border-color:var(--sl);background:#e2f2e5}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+#fb{min-height:1.6em;margin-top:10px;font-size:1.1rem;font-weight:bold}
+#skill{display:none;margin-top:10px;padding:10px;border:2px dashed var(--gold);border-radius:10px;background:#fff6d6}
+#skill .w{font-family:Verdana,Arial,sans-serif;font-size:1.5rem;font-weight:bold;letter-spacing:.06em}
+#skill mark{background:var(--hf);color:var(--rv);border-radius:4px;padding:0 2px}
+#skill mark.bl{background:#a9b8e8}
+#msg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:5}
+#msg>div{background:#fbf4e1;border:4px solid var(--gold);border-radius:14px;padding:24px;text-align:center;max-width:90vw}
+#msg h2{color:var(--g);font-size:2rem;margin:.2em}
+</style></head><body>
+<header><h1>🦉 Alyssa's Hogwarts Word Scramble</h1><div class="houses"></div>
+<div class="bar"><span id="pts">🏆 0 house points</span><span id="cnt">0/20</span></div>
+<div class="prog"><div id="pbar"></div></div>
+<a class="home" href="../">← Back to the Great Hall</a></header>
+<main><div class="card">
+<p class="clue"><b>📜 Clue:</b> <span id="clue"></span></p>
+<div class="len" id="len"></div>
+<div id="tiles"></div>
+<input id="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type or tap the tiles" aria-label="Your answer">
+<div class="row">
+<button id="check" class="green">✔ Check</button>
+<button id="back" class="alt">⌫ Back</button>
+<button id="clear" class="alt">Clear</button>
+</div>
+<div class="row">
+<button id="hint" class="yel">💡 Hint</button>
+<button id="shuf" class="alt">🔀 Shuffle again</button>
+<button id="skip" class="alt">⏭ Skip</button>
+<button id="next" class="green" style="display:none">Next word ➜</button>
+</div>
+<div id="fb"></div>
+<div id="skill"></div>
+</div></main>
+<div id="msg"><div><div style="font-size:3rem">🦉✨</div><h2>Mischief managed!</h2><p id="mt"></p><button id="again">Play again</button> <a href="../"><button class="alt">Great Hall</button></a></div></div>
+<script>
+const WORDS=[
+["Unbeatable","So good or strong that no one can beat it."],
+["Respectable","Good, honest, and proper enough that people respect it."],
+["Accountable","Responsible for what you do and expected to explain your actions."],
+["Questionable","Doubtful; it might not be true, honest, or right."],
+["Undeniable","So clearly true that no one can say it isn't."],
+["Irrefutable","Impossible to prove wrong."],
+["Insurmountable","Too big or too hard to get past or overcome."],
+["Interchangeable","Able to be swapped with each other and still work the same way."],
+["Treasure","Gold, jewels, or other valuable things; or to value something very much."],
+["Transgress","To break a rule or law, or go past a limit you shouldn't cross."],
+["Trifecta","A set of three wins or successes that happen together."],
+["Treacherous","Very dangerous, or not able to be trusted."],
+["Traceable","Able to be followed or tracked back to where it came from."],
+["Treason","The crime of betraying your own country, such as helping its enemies."],
+["Drivel","Silly talk or writing that doesn't make sense."],
+["Drowsy","Sleepy and tired."],
+["Drastic","Extreme, with a big and sudden effect."],
+["Driftwood","Wood that has floated in the sea or a river and washed up on shore."],
+["Drapery","Cloth that hangs in loose folds, like long curtains."],
+["Drought","A long time with little or no rain, so the land gets very dry."]
+].map(([word,def])=>({word,def}));
+const BASE=10,HINT_COST=3,MIN_PTS=2;
+function shuffleArr(a,rnd=Math.random){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function norm(s){return String(s).toLowerCase().replace(/[^a-z]/g,"")}
+function scramble(word,rnd=Math.random,avoid){
+ const w=word.toUpperCase();
+ for(let t=0;t<1000;t++){const s=shuffleArr(w.split(""),rnd).join("");if(s!==w&&s!==avoid)return s}
+ for(let t=0;t<1000;t++){const s=shuffleArr(w.split(""),rnd).join("");if(s!==w)return s}
+ throw new Error("cannot scramble "+word);
+}
+function isCorrect(input,word){return norm(input)===norm(word)&&norm(word).length>0}
+function pointsFor(hints){return Math.max(MIN_PTS,BASE-HINT_COST*hints)}
+function skillParts(word){
+ const w=word,low=w.toLowerCase(),notes=[];let pre=0,suf=0;
+ if(/^(tr|dr)/.test(low)){pre=2;notes.push(`<b>${w.slice(0,2).toLowerCase()}</b> blend: two consonants said together, keeping both sounds.`)}
+ if(low.endsWith("able")){suf=4;notes.push(`<b>-able</b> suffix: means "able to be" or "worthy of being".`)}
+ return{pre,suf,notes};
+}
+function skillHTML(word){
+ const{pre,suf,notes}=skillParts(word);if(!notes.length)return"";
+ const mid=word.slice(pre,word.length-suf);
+ const w=(pre?`<mark class="bl">${word.slice(0,pre)}</mark>`:"")+mid+(suf?`<mark>${word.slice(word.length-suf)}</mark>`:"");
+ return`<div>✨ Spell spotting ✨</div><div class="w">${w}</div><div>${notes.join("<br>")}</div>`;
+}
+function tileUsage(input,tiles){const used=tiles.map(()=>false);for(const ch of norm(input).toUpperCase()){const i=tiles.findIndex((t,k)=>!used[k]&&t===ch);if(i>=0)used[i]=true}return used}
+if(typeof module!=="undefined"){module.exports={WORDS,scramble,isCorrect,pointsFor,skillParts,norm,tileUsage,shuffleArr}}
+else{
+const $=id=>document.getElementById(id),A=$("ans");
+let queue,cur,scr,hints,solvedN,points,done;
+function start(){queue=shuffleArr(WORDS);solvedN=0;points=0;$("msg").style.display="none";nextWord()}
+function nextWord(){
+ if(!queue.length)return finish();
+ cur=queue.shift();hints=0;done=false;scr=scramble(cur.word);
+ A.value="";A.className="";A.disabled=false;$("fb").textContent="";$("skill").style.display="none";
+ $("clue").textContent=cur.def;$("len").textContent=`${cur.word.length} letters`;
+ ["check","back","clear","hint","shuf","skip"].forEach(b=>$(b).style.display="");$("next").style.display="none";
+ renderTiles();stats();
+}
+function stats(){$("pts").textContent=`🏆 ${points} house points`;$("cnt").textContent=`${solvedN}/${WORDS.length}`;$("pbar").style.width=(100*solvedN/WORDS.length)+"%"}
+function renderTiles(){
+ const used=tileUsage(A.value,scr.split(""));
+ $("tiles").innerHTML=scr.split("").map((c,i)=>`<button class="tile${used[i]?" used":""}" data-i="${i}" aria-label="${c}">${c}</button>`).join("");
+ $("hint").disabled=hints>=cur.word.length-1;
+}
+$("tiles").addEventListener("click",e=>{const t=e.target.closest(".tile");if(!t||done)return;A.value+=t.textContent;A.classList.remove("bad");renderTiles()});
+A.addEventListener("input",()=>{A.classList.remove("bad");renderTiles()});
+A.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();done?nextWord():check()}});
+$("back").onclick=()=>{A.value=norm(A.value).slice(0,-1).toUpperCase();renderTiles()};
+$("clear").onclick=()=>{A.value="";renderTiles()};
+$("shuf").onclick=()=>{scr=scramble(cur.word,Math.random,scr);renderTiles()};
+$("hint").onclick=()=>{
+ if(hints>=cur.word.length-1)return;
+ const typed=norm(A.value),target=norm(cur.word);
+ let ok=0;while(ok<typed.length&&typed[ok]===target[ok])ok++;
+ hints++;const n=Math.min(Math.max(hints,ok+1),target.length-1);
+ A.value=target.slice(0,n).toUpperCase();
+ $("fb").textContent=`💡 Hint used: the first ${n} letter${n>1?"s are":" is"} shown. This word is now worth ${pointsFor(hints)} points.`;
+ renderTiles();
+};
+$("skip").onclick=()=>{queue.push(cur);$("fb").textContent="";nextWord();if(queue.length)$("fb").textContent="⏭ Skipped – that word will come back at the end."};
+function check(){
+ if(done)return;
+ if(!norm(A.value)){$("fb").textContent="Type or tap some letters first!";return}
+ if(isCorrect(A.value,cur.word)){
+  done=true;const p=pointsFor(hints);points+=p;solvedN++;
+  A.value=cur.word.toUpperCase();A.className="good";A.disabled=true;
+  $("tiles").innerHTML="";
+  $("fb").textContent=`🎉 Brilliant! "${cur.word}" earns +${p} house points!`;
+  const s=skillHTML(cur.word);$("skill").innerHTML=s;$("skill").style.display=s?"block":"none";
+  ["check","back","clear","hint","shuf","skip"].forEach(b=>$(b).style.display="none");
+  $("next").style.display="";$("next").textContent=queue.length?"Next word ➜":"Finish ✨";$("next").focus();
+  stats();
+ }else{
+  A.classList.remove("bad");void A.offsetWidth;A.classList.add("bad");
+  $("fb").textContent=norm(A.value).length<norm(cur.word).length?"Not quite – keep going, you need more letters!":"Not quite – try again, or use a hint! 🪄";
+ }
+}
+$("check").onclick=check;$("next").onclick=nextWord;$("again").onclick=start;
+function finish(){
+ const max=WORDS.length*BASE;
+ $("mt").innerHTML=`You unscrambled all ${WORDS.length} words and earned <b>${points}</b> of ${max} house points!<br>${points>=max*.9?"Outstanding! 🏆":points>=max*.7?"Exceeds Expectations! ⭐":"Acceptable – practice makes perfect! 📚"}`;
+ $("msg").style.display="flex";
+}
+start();
+}
+</script>
+</body></html>
