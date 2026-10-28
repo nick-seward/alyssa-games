@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alyssa's Hogwarts Guess the Word</title>
+<style>
+:root{--ink:#3b2a1a;--g:#7f0909;--gold:#d3a625;--sl:#1a472a;--rv:#0e1a40;--hf:#ecb939}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--ink);background:#e9dcc0 radial-gradient(circle at 30% 20%,#f6ecd2,#e2cfa6 70%,#cdb383);min-height:100vh}
+header{text-align:center;padding:12px 8px 4px}
+h1{margin:0;font-size:clamp(1.4rem,4vw,2.3rem);color:var(--g);text-shadow:1px 1px 0 var(--gold)}
+.houses{height:6px;background:linear-gradient(90deg,var(--g) 25%,var(--hf) 25% 50%,var(--rv) 50% 75%,var(--sl) 75%);margin:8px auto;max-width:600px;border-radius:3px}
+.home{display:inline-block;margin-top:4px;color:var(--rv);font-size:.95rem}
+.bar{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center;margin:6px;font-size:1.1rem;font-weight:bold}
+.prog{width:min(90vw,520px);height:10px;margin:4px auto 0;background:#fbf4e1;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.prog div{height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--gold));transition:width .4s}
+main{max-width:760px;margin:0 auto;padding:8px 12px 24px}
+.card{background:#fbf4e1;border:4px double var(--ink);border-radius:12px;padding:14px;text-align:center}
+#scene{position:relative;height:clamp(90px,20vw,120px);border-radius:10px;overflow:hidden;background:linear-gradient(#0b1430,#1c2a55 70%,#2c3a2a);border:2px solid var(--ink);margin-bottom:10px}
+#scene .moon{position:absolute;right:14px;top:8px;font-size:1.4rem}
+#light{position:absolute;left:8%;top:50%;width:var(--r,190px);height:var(--r,190px);transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(220,240,255,.85),rgba(160,200,255,.35) 45%,transparent 70%);transition:width .5s,height .5s}
+#patronus{position:absolute;left:3%;top:50%;transform:translateY(-50%);font-size:clamp(2rem,7vw,3rem);filter:drop-shadow(0 0 8px #cfe6ff) brightness(1.3)}
+#dems{position:absolute;top:50%;left:var(--d,90%);transform:translateY(-50%);display:flex;gap:2px;transition:left .5s}
+#dems span{font-size:clamp(1.4rem,5vw,2.1rem);filter:grayscale(1) brightness(.55) drop-shadow(0 0 4px #000);animation:bob 2s ease-in-out infinite}
+#dems span:nth-child(2n){animation-delay:.6s}
+@keyframes bob{50%{transform:translateY(-6px)}}
+#lives{font-weight:bold;margin-bottom:6px}
+.clue{font-size:clamp(1rem,2.6vw,1.2rem);margin:0 0 10px;font-style:italic}
+.clue b{font-style:normal;color:var(--g)}
+#blanks{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin:8px 0 12px}
+#blanks span{width:clamp(22px,6vw,38px);border-bottom:3px solid var(--ink);font-family:Verdana,Arial,sans-serif;font-weight:bold;font-size:clamp(1.1rem,4.4vw,1.7rem);min-height:1.5em;line-height:1.5em}
+#blanks span.miss{color:var(--g)}
+#blanks span.hint{color:#9a6b00}
+#keys{display:grid;grid-template-columns:repeat(9,1fr);gap:5px;max-width:560px;margin:0 auto;user-select:none;-webkit-user-select:none}
+.k{font:inherit;font-family:Verdana,Arial,sans-serif;font-weight:bold;font-size:clamp(1rem,4vw,1.3rem);height:clamp(40px,10vw,50px);padding:0;border-radius:8px;border:2px solid var(--ink);background:#f3e2b3;color:var(--ink);box-shadow:0 3px 0 #a88a5a;touch-action:manipulation;cursor:pointer}
+.k.hit{background:#9fd3ae;box-shadow:none}.k.miss{background:#c9b9a3;color:#8a7a62;box-shadow:none;text-decoration:line-through}
+.k:disabled{cursor:default}
+button.b{font:inherit;font-size:1rem;padding:9px 14px;border-radius:8px;border:2px solid var(--gold);background:var(--g);color:#fff;cursor:pointer;touch-action:manipulation}
+button.b:disabled{opacity:.45;cursor:default}
+button.yel{background:var(--hf);color:var(--ink)}button.green{background:var(--sl)}button.alt{background:var(--rv)}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+#fb{min-height:1.6em;margin-top:10px;font-size:1.1rem;font-weight:bold}
+#result{display:none;margin-top:6px}
+#skill{margin-top:10px;padding:10px;border:2px dashed var(--gold);border-radius:10px;background:#fff6d6}
+#skill .w{font-family:Verdana,Arial,sans-serif;font-size:1.5rem;font-weight:bold;letter-spacing:.06em}
+#skill mark{background:var(--hf);color:var(--rv);border-radius:4px;padding:0 2px}
+#msg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:5}
+#msg>div{background:#fbf4e1;border:4px solid var(--gold);border-radius:14px;padding:24px;text-align:center;max-width:90vw}
+#msg h2{color:var(--g);font-size:2rem;margin:.2em}
+#msg a{color:var(--rv)}
+</style></head><body>
+<header><h1>🦌 Alyssa's Hogwarts Guess the Word</h1><div class="houses"></div>
+<div class="bar"><span id="pts">🏆 0 house points</span><span id="cnt">0/20</span></div>
+<div class="prog"><div id="pbar"></div></div>
+<a class="home" href="../">← Back to the Great Hall</a></header>
+<main><div class="card">
+<div id="scene" aria-hidden="true"><span class="moon">🌙</span><div id="light"></div><div id="patronus">🦌</div><div id="dems"></div></div>
+<div id="lives"></div>
+<p class="clue"><b>📜 Clue:</b> <span id="clue"></span></p>
+<div id="blanks" aria-live="polite"></div>
+<div id="keys"></div>
+<div class="row" id="ctrl"><button id="hint" class="b yel">💡 Hint (−2 points)</button></div>
+<div id="fb"></div>
+<div id="result"><div id="skill"></div><div class="row"><button id="next" class="b green">Next word ➜</button></div></div>
+</div></main>
+<div id="msg"><div><div style="font-size:3rem">🦉✨</div><h2>Mischief managed!</h2><p id="mt"></p><button id="again" class="b">Play again</button><p><a href="../">← Back to the Great Hall</a></p></div></div>
+<script>
+const WORDS=[
+["Preposterous","Completely silly or ridiculous; it makes no sense at all.","pre",'<b>pre-</b> means "before". Latin <i>prae</i> (before) + <i>posterus</i> (after) meant "back-to-front", which is why it means totally absurd!'],
+["Prevalent","Common and found almost everywhere.","pre",'<b>pre-</b> + Latin <i>valere</i> (to be strong): stronger than the rest, so it is everywhere.'],
+["Predominant","The strongest, biggest, or most common one.","pre",'<b>pre-</b> (here meaning "above" or "more") + <i>dominant</i>: more powerful or common than the others.'],
+["Precious","Very valuable, or very much loved.","pre",'Trickster alert! <b>Precious</b> starts with p-r-e, but it comes from Latin <i>pretium</i> (price), so it is <b>not</b> really the pre- prefix.'],
+["Preemptive","Done early to stop something before it can happen.","pre",'<b>pre-</b> means "before": a preemptive move acts <i>before</i> the problem shows up.'],
+["Preamble","An introduction at the start of a speech or document.","pre",'<b>pre-</b> (before) + <i>amble</i> (walk): the part that "walks before" the main part.'],
+["Precipitate","To make something happen suddenly or sooner than expected.","pre",'<b>pre-</b> + Latin <i>caput</i> (head): going headfirst, suddenly.'],
+["Precedence","Being more important, so it comes first.","pre",'<b>pre-</b> (before) + <i>cede</i> (go): something with precedence goes before the others.'],
+["Wherewithal","The money, skills, or things you need to do something.","wh",'<b>wh-</b> spelling: it is built from <i>where + with + al</i>. In most wh words, wh sounds like /w/.'],
+["Whittle","To carve wood by cutting off small pieces, or to slowly make something smaller.","wh",'<b>wh-</b> sounds like /w/ here. Don\'t forget the double <b>tt</b>!'],
+["Whistling","Making a high sound by blowing air through your lips.","wh",'<b>wh-</b> spelling, and a sneaky <b>silent t</b>: whis<b>t</b>ling.'],
+["Whipped","Beaten quickly until fluffy, like whipped cream, or hit with a whip.","wh",'<b>wh-</b> spelling. Whip doubles its <b>p</b> before <b>-ed</b>, and the -ed sounds like /t/.'],
+["Whirring","Making a steady buzzing sound, like a fan spinning fast.","wh",'<b>wh-</b> spelling. Whir doubles its <b>r</b> before <b>-ing</b>.'],
+["Wholesale","Selling things in large amounts, usually to stores, at a lower price.","wh",'Here <b>wh-</b> says /h/, just like in <i>who</i> and <i>whole</i>!'],
+["Quantum","In science, the smallest possible amount of something, like energy.","qu",'<b>qu</b> says /kw/. In English, <b>q</b> is almost always followed by <b>u</b>.'],
+["Qualm","A worried or uneasy feeling about whether something is right.","qu",'<b>qu</b> says /kw/, and the <b>l</b> is silent: "kwahm".'],
+["Quarantine","Keeping people or animals apart for a while so a sickness doesn\'t spread.","qu",'<b>qu</b> says /kw/. It comes from Italian <i>quaranta</i> (forty), for the 40 days ships once had to wait.'],
+["Quiver","To shake slightly, or a case for carrying arrows.","qu",'<b>qu</b> says /kw/: q is almost always followed by u.'],
+["Quicksand","Wet, loose sand that you can sink into.","qu",'<b>qu</b> says /kw/. It is a compound word: <i>quick + sand</i>. "Quick" used to mean "alive", because the sand seems to move!'],
+["Quadruple","To make something four times as big, or four times as many.","qu",'<b>qu</b> says /kw/. <b>Quad-</b> means four, like a quadrilateral.']
+].map(([word,def,pat,note])=>({word,def,pat,note}));
+const MAX_WRONG=6,BASE=10,HINT_COST=2,WRONG_COST=1,MIN_PTS=1;
+function shuffleArr(a,rnd=Math.random){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function newRound(entry){return{entry,word:entry.word.toUpperCase(),guessed:new Set(),hinted:new Set(),wrong:0,hints:0}}
+function isWon(s){return[...s.word].every(c=>s.guessed.has(c))}
+function isLost(s){return s.wrong>=MAX_WRONG}
+function isOver(s){return isWon(s)||isLost(s)}
+function guess(s,letter){
+ const L=String(letter).toUpperCase();
+ if(!/^[A-Z]$/.test(L)||isOver(s))return"invalid";
+ if(s.guessed.has(L))return"repeat";
+ s.guessed.add(L);
+ if(s.word.includes(L))return"hit";
+ s.wrong++;return"miss";
+}
+function remaining(s){return[...new Set(s.word)].filter(c=>!s.guessed.has(c))}
+function canHint(s){return!isOver(s)&&remaining(s).length>1}
+function hint(s,rnd=Math.random){
+ if(!canHint(s))return null;
+ const r=remaining(s),L=r[Math.floor(rnd()*r.length)];
+ s.guessed.add(L);s.hinted.add(L);s.hints++;return L;
+}
+function masked(s){return[...s.word].map(c=>s.guessed.has(c)?c:"_")}
+function pointsFor(s){return isWon(s)?Math.max(MIN_PTS,BASE-HINT_COST*s.hints-WRONG_COST*s.wrong):0}
+function skillHTML(e){const n=e.pat.length;return`<div>✨ Spell spotting ✨</div><div class="w"><mark>${e.word.slice(0,n)}</mark>${e.word.slice(n)}</div><div>${e.note}</div>`}
+// queue: lost words come back once at the end
+function makeQueue(rnd=Math.random){return shuffleArr(WORDS,rnd).map(e=>({e,retry:false}))}
+function afterRound(queue,item,won){if(!won&&!item.retry){queue.push({e:item.e,retry:true});return true}return false}
+if(typeof module!=="undefined"){module.exports={WORDS,MAX_WRONG,newRound,guess,hint,canHint,isWon,isLost,masked,pointsFor,makeQueue,afterRound,shuffleArr,skillHTML}}
+else{
+const $=id=>document.getElementById(id);
+let queue,item,S,points,solved,failed;
+const KB="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+$("keys").innerHTML=KB.map(c=>`<button class="k" data-l="${c}">${c}</button>`).join("");
+function start(){queue=makeQueue();points=0;solved=0;failed=[];$("msg").style.display="none";next()}
+function next(){
+ if(!queue.length)return finish();
+ item=queue.shift();S=newRound(item.e);
+ $("clue").textContent=item.e.def;$("fb").textContent=item.retry?"🔁 This one is back for another try. You can do it!":"";
+ $("result").style.display="none";$("ctrl").style.display="";
+ document.querySelectorAll(".k").forEach(k=>{k.className="k";k.disabled=false});
+ render();stats();
+}
+function stats(){$("pts").textContent=`🏆 ${points} house points`;$("cnt").textContent=`${solved}/${WORDS.length}`;$("pbar").style.width=(100*solved/WORDS.length)+"%"}
+function render(reveal){
+ $("blanks").innerHTML=[...S.word].map(c=>{const shown=S.guessed.has(c);const cls=!shown&&reveal?"miss":S.hinted.has(c)?"hint":"";return`<span class="${cls}">${shown||reveal?c:""}</span>`}).join("");
+ const left=MAX_WRONG-S.wrong;
+ $("lives").textContent=isWon(S)?"Expecto Patronum! The Dementors flee! 🦌✨":left?`🛡️ Patronus strength: ${left} wrong guess${left>1?"es":""} left`:"The Dementors broke through! 🥶";
+ $("dems").innerHTML="<span>👻</span>".repeat(Math.max(1,Math.min(3,1+Math.floor(S.wrong/2))));
+ const d=isWon(S)?110:88-S.wrong*(70/MAX_WRONG);
+ $("dems").style.setProperty("--d",d+"%");
+ $("light").style.setProperty("--r",(isWon(S)?260:60+130*left/MAX_WRONG)+"px");
+ $("hint").disabled=!canHint(S);
+ document.querySelectorAll(".k").forEach(k=>{const l=k.dataset.l;if(S.guessed.has(l)){k.classList.add(S.word.includes(l)?"hit":"miss");k.disabled=true}});
+}
+function play(l){
+ if(!S||isOver(S)||$("msg").style.display==="flex")return;
+ const r=guess(S,l);if(r==="invalid")return;
+ $("fb").textContent=r==="repeat"?`You already tried ${l.toUpperCase()}.`:r==="hit"?"✨ Yes!":`No ${l.toUpperCase()} – the Dementors creep closer…`;
+ render();if(isOver(S))end();
+}
+function end(){
+ const won=isWon(S),p=pointsFor(S);
+ document.querySelectorAll(".k").forEach(k=>k.disabled=true);
+ if(won){points+=p;solved++;$("fb").innerHTML=`🎉 Brilliant! <b>${item.e.word}</b> earns +${p} house points!`}
+ else{const back=afterRound(queue,item,false);if(!back)failed.push(item.e.word);
+  $("fb").innerHTML=`The word was <b>${item.e.word}</b>: ${item.e.def}<br>${back?"🔁 It will come back once at the end.":"Keep practising this one! 📚"}`}
+ render(!won);
+ $("skill").innerHTML=skillHTML(item.e);$("result").style.display="block";$("ctrl").style.display="none";
+ $("next").textContent=queue.length?"Next word ➜":"Finish ✨";$("next").focus();stats();
+}
+$("keys").addEventListener("click",e=>{const k=e.target.closest(".k");if(k&&!k.disabled)play(k.dataset.l)});
+$("hint").onclick=()=>{const L=hint(S);if(L){$("fb").textContent=`💡 The Patronus reveals ${L}! (−${2} points)`;render();if(isOver(S))end()}};
+$("next").onclick=next;$("again").onclick=start;
+document.addEventListener("keydown",e=>{
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ if(e.key==="Enter"&&S&&isOver(S)&&$("msg").style.display!=="flex"&&document.activeElement!==$("next")){e.preventDefault();next();return}
+ if(/^[a-zA-Z]$/.test(e.key)){e.preventDefault();play(e.key)}
+});
+function finish(){
+ const max=WORDS.length*10;
+ $("mt").innerHTML=`You guessed <b>${solved}</b> of ${WORDS.length} words and earned <b>${points}</b> of ${max} house points!<br>${points>=max*.85?"Outstanding! 🏆":points>=max*.65?"Exceeds Expectations! ⭐":"Acceptable – practice makes perfect! 📚"}${failed.length?`<br><small>Words to practise: ${failed.join(", ")}</small>`:""}`;
+ $("msg").style.display="flex";
+}
+start();
+}
+</script>
+</body></html>

@@ -8,6 +8,7 @@ Hogwarts-themed spelling games for Alyssa's weekly Grade 7 (Ontario) word lists.
 |------|------|--------|
 | 5 | Word Search | [`week-5-word-search/`](week-5-word-search/) |
 | 6 | Word Scramble | [`week-6-word-scramble/`](week-6-word-scramble/) |
+| 7 | Guess the Word | [`week-7-guess-the-word/`](week-7-guess-the-word/) |
 
 Each game is a single self-contained `index.html` with no dependencies.
 
