@@ -26,7 +26,9 @@ footer{text-align:center;font-size:.9rem;padding:20px;color:#6b5840}
 <main id="games"></main>
 <footer>⚡ Mischief managed ⚡</footer>
 <script>
-// To add a game: put it in its own folder (e.g. week-7-something/index.html) and add an entry here.
+// To add a game: put it in its own folder (e.g. week-8-something/index.html) and add an entry
+// at the END of this list (the newest entry shows first on the page).
+// Use week:N for weekly spelling games, or label:"Math" (or any subject) instead of a week.
 // colour: one of gryffindor, hufflepuff, ravenclaw, slytherin
 const GAMES=[
  {week:5,title:"Word Search",icon:"🔍",path:"week-5-word-search/",colour:"gryffindor",
@@ -35,10 +37,12 @@ const GAMES=[
   desc:"Unscramble 20 spelling words using the clues and win house points.",tags:["-able suffix","tr/dr blends"]},
  {week:7,title:"Guess the Word",icon:"🦌",path:"week-7-guess-the-word/",colour:"hufflepuff",
   desc:"Guess each word letter by letter before the Dementors break through your Patronus!",tags:["pre- prefix","wh/qu spellings"]},
+ {label:"Math",title:"Slope Explorer",icon:"🧹",path:"math-slope-explorer/",colour:"slytherin",
+  desc:"Drag points on a magic grid to see rise over run, explore real-life slopes, then cast practice spells.",tags:["slope","rise over run"]},
 ];
 const C={gryffindor:"#7f0909",hufflepuff:"#b8860b",ravenclaw:"#0e1a40",slytherin:"#1a472a"};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-document.getElementById("games").innerHTML=[...GAMES].sort((a,b)=>b.week-a.week).map(g=>
- `<a class="card" href="${esc(g.path)}" style="--c:${C[g.colour]||C.gryffindor}"><div class="icon">${g.icon}</div><div class="wk">Week ${g.week}</div><h2>${esc(g.title)}</h2><p>${esc(g.desc)}</p><div class="tags">${(g.tags||[]).map(t=>`<span>${esc(t)}</span>`).join("")}</div></a>`).join("");
+document.getElementById("games").innerHTML=[...GAMES].reverse().map(g=>
+ `<a class="card" href="${esc(g.path)}" style="--c:${C[g.colour]||C.gryffindor}"><div class="icon">${g.icon}</div><div class="wk">${esc(g.label||"Week "+g.week)}</div><h2>${esc(g.title)}</h2><p>${esc(g.desc)}</p><div class="tags">${(g.tags||[]).map(t=>`<span>${esc(t)}</span>`).join("")}</div></a>`).join("");
 </script>
 </body></html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alyssa's Hogwarts Slope Explorer</title>
+<style>
+:root{--ink:#3b2a1a;--g:#7f0909;--gold:#d3a625;--sl:#1a472a;--rv:#0e1a40;--hf:#ecb939;--rise:#c0392b;--run:#2e5aa8;--line:#5b2a86}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;color:var(--ink);background:#e9dcc0 radial-gradient(circle at 30% 20%,#f6ecd2,#e2cfa6 70%,#cdb383);min-height:100vh;line-height:1.45}
+header{text-align:center;padding:12px 8px 4px}
+h1{margin:0;font-size:clamp(1.4rem,4vw,2.3rem);color:var(--g);text-shadow:1px 1px 0 var(--gold)}
+h2{color:var(--g);margin:.2em 0 .5em;font-size:clamp(1.25rem,3.4vw,1.7rem)}
+h3{margin:.2em 0 .3em;color:var(--rv)}
+.houses{height:6px;background:linear-gradient(90deg,var(--g) 25%,var(--hf) 25% 50%,var(--rv) 50% 75%,var(--sl) 75%);margin:8px auto;max-width:600px;border-radius:3px}
+.home{color:var(--rv);font-size:.95rem}
+nav{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+nav a{font-size:.95rem;color:#fff;background:var(--rv);border:2px solid var(--gold);border-radius:16px;padding:4px 12px;text-decoration:none}
+main{max-width:1060px;margin:0 auto;padding:6px 12px 30px}
+section{background:#fbf4e1;border:4px double var(--ink);border-radius:12px;padding:14px;margin:0 0 18px}
+.rise{color:var(--rise);font-weight:bold}.run{color:var(--run);font-weight:bold}
+/* explorer */
+.explore{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:760px){.explore{grid-template-columns:1fr}}
+#plane{width:100%;max-width:560px;display:block;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;background:#fffaf0;border:2px solid var(--ink);border-radius:10px}
+#plane .gl{stroke:#e3d3b0;stroke-width:1}
+#plane .ax{stroke:#6b5840;stroke-width:2}
+#plane .num{font:11px Verdana,Arial,sans-serif;fill:#8a7a62}
+.pt{cursor:grab}
+.pt circle.hit{fill:transparent}
+.pt text{font:bold 15px Verdana,Arial,sans-serif;fill:var(--ink);paint-order:stroke;stroke:#fffaf0;stroke-width:4px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+button{font:inherit;font-size:1rem;padding:8px 13px;border-radius:8px;border:2px solid var(--gold);background:var(--g);color:#fff;cursor:pointer;touch-action:manipulation}
+button.alt{background:var(--rv)}button.green{background:var(--sl)}button.yel{background:var(--hf);color:var(--ink)}
+button:disabled{opacity:.5;cursor:default}
+#readout{font-family:Verdana,Arial,sans-serif;font-size:clamp(1rem,2.6vw,1.2rem);font-weight:bold;background:#fff6d6;border:2px solid var(--gold);border-radius:10px;padding:10px;text-align:center}
+#coords{font-size:.95rem;text-align:center;margin:6px 0}
+#kind{margin-top:10px;padding:10px;border-left:6px solid var(--line);background:#f3ead2;border-radius:6px}
+#kind b{font-size:1.1rem}
+#per1{margin-top:8px}
+.meter{text-align:center;margin-top:10px}
+.meter svg{width:min(100%,200px)}
+#mcap{font-weight:bold}
+/* explainer */
+.ex{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.ex div{background:#f6ecd2;border-radius:10px;padding:10px;border:1px solid #d8c49a}
+.big{font-size:clamp(1.15rem,3vw,1.45rem);text-align:center;font-weight:bold;margin:4px 0 12px}
+/* real life */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.rl{background:#fffaf0;border:2px solid var(--ink);border-top:8px solid var(--c,var(--g));border-radius:10px;padding:12px}
+.rl svg{width:100%;height:auto;display:block;margin:6px 0;background:#fbf4e1;border-radius:8px}
+.work{font-family:Verdana,Arial,sans-serif;font-size:.92rem;background:#f3ead2;border-radius:6px;padding:6px 8px;margin:6px 0}
+.note{font-size:.85rem;color:#6b5840;font-style:italic}
+/* quiz */
+.qbar{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-weight:bold;font-size:1.05rem}
+.prog{width:min(90%,520px);height:10px;margin:6px auto 12px;background:#fff;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.prog div{height:100%;width:0;background:linear-gradient(90deg,var(--g),var(--gold));transition:width .4s}
+#qbox{text-align:center}
+#qprompt{font-size:clamp(1.05rem,2.8vw,1.25rem);margin:6px 0}
+#qdiag svg{width:min(100%,300px);height:auto;background:#fffaf0;border:1px solid #c9b48a;border-radius:8px}
+#qin{font:inherit;font-family:Verdana,Arial,sans-serif;font-size:1.3rem;width:9em;text-align:center;padding:8px;border:3px solid var(--gold);border-radius:10px;background:#fffaf0}
+#qin.bad{animation:shake .4s;border-color:var(--g)}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px}
+#qchoices button{min-width:110px;background:var(--rv)}
+#qfb{min-height:1.5em;margin-top:10px;font-weight:bold}
+#qhint{display:none;margin-top:8px;padding:8px;border:2px dashed var(--gold);border-radius:8px;background:#fff6d6}
+#done{display:none;text-align:center}
+#done h2{font-size:2rem}
+.tip{font-size:.9rem;color:#6b5840}
+</style></head><body>
+<header><h1>🧹 Alyssa's Hogwarts Slope Explorer</h1><div class="houses"></div>
+<a class="home" href="../">← Back to the Great Hall</a>
+<nav><a href="#explore">🔮 Explore</a><a href="#how">📜 How slope works</a><a href="#real">🏰 Real life</a><a href="#quiz">✨ Practice spells</a></nav></header>
+<main>
+<section id="explore"><h2>🔮 Slope Explorer</h2>
+<p class="tip">Drag the two glowing points <b>A</b> and <b>B</b> (they snap to whole numbers). Watch the <span class="rise">rise</span>, the <span class="run">run</span>, and the broomstick fly along the line!</p>
+<div class="explore">
+<div><svg id="plane" viewBox="0 0 520 520" role="img" aria-label="Coordinate grid with a line between two points"></svg>
+<div class="presets"><button data-p="up">⬆️ Uphill</button><button data-p="down" class="alt">⬇️ Downhill</button><button data-p="flat" class="green">➡️ Flat</button><button data-p="cliff" class="alt">🧗 Cliff</button><button data-p="rand" class="yel">🎲 Random</button></div></div>
+<div>
+<div id="coords"></div>
+<div id="readout" aria-live="polite"></div>
+<div id="kind"></div>
+<div class="meter"><svg id="meter" viewBox="62 0 170 212" aria-hidden="true"></svg><div>Steepness meter: <span id="mcap"></span></div></div>
+</div></div>
+</section>
+
+<section id="how"><h2>📜 How slope works</h2>
+<p class="big"><span class="line">slope</span> = <span class="rise">rise</span> ÷ <span class="run">run</span> = how much the line goes <b>up</b> for each <b>1 step across</b></p>
+<div class="ex">
+<div><h3>🪜 It's a staircase</h3>Between any two points on a line you can draw a staircase step: walk <span class="run">across</span> (the run), then climb <span class="rise">up</span> (the rise). Every step on the same straight line has the same shape.</div>
+<div><h3>📖 Read left to right</h3>Always read a line like a book: from left to right. The run goes right. If the line climbs, the rise is positive. If it drops, the rise is negative (you went <i>down</i>).</div>
+<div><h3>⛰️ Bigger number = steeper</h3>A slope of 3 is steeper than a slope of 1, and a slope of ½ is gentle. For downhill lines, ignore the minus sign: −3 is steeper than −1.</div>
+<div><h3>🧭 The four kinds</h3><b>Positive</b>: uphill ↗. <b>Negative</b>: downhill ↘. <b>Zero</b>: flat ➡ (rise is 0). <b>Undefined</b>: straight up and down ⬆ (run is 0, and we can't divide by 0).</div>
+</div>
+<p><b>Example:</b> from (1, 1) to (3, 5) the <span class="run">run</span> is 3 − 1 = 2 and the <span class="rise">rise</span> is 5 − 1 = 4, so slope = 4/2 = 2. That means for every 1 step across, the line goes up 2.</p>
+</section>
+
+<section id="real"><h2>🏰 Slope in real life</h2>
+<div class="cards" id="cards"></div>
+</section>
+
+<section id="quiz"><h2>✨ Practice spells</h2>
+<div class="qbar"><span id="qpts">🏆 0 house points</span><span id="qcnt">Spell 1/8</span></div>
+<div class="prog"><div id="qpbar"></div></div>
+<div id="qbox">
+<div id="qprompt"></div><div id="qdiag"></div>
+<div id="qinrow" class="row"><input id="qin" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 2, -1/2, 0.5" aria-label="Your answer"><button id="qcheck" class="green">✔ Check</button></div>
+<div id="qchoices" class="row"></div>
+<div class="row"><button id="qhintb" class="yel">💡 Hint (−3 points)</button><button id="qnext" class="green" style="display:none">Next spell ➜</button></div>
+<div id="qhint"></div>
+<div id="qfb" aria-live="polite"></div>
+<p class="tip">Type answers as a whole number, a fraction like 3/4 or −2/3, or a decimal. For a vertical line, type <b>undefined</b>.</p>
+</div>
+<div id="done"><div style="font-size:3rem">🦉✨</div><h2>Mischief managed!</h2><p id="dmsg"></p><button id="again">Play again</button><p><a class="home" href="../">← Back to the Great Hall</a></p></div>
+</section>
+</main>
+<script>
+// ---------- pure logic (tested in node) ----------
+const R=8;
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
+function simplify(n,d){if(d===0)return null;if(d<0){n=-n;d=-d}const g=gcd(n,d)||1;return{n:n/g,d:d/g}}
+const neg=s=>String(s).replace(/-/g,"−");
+function fmtDec(n,d){const v=n/d;if(Number.isInteger(v))return{txt:String(v),exact:true};const r=Math.round(v*100)/100;return{txt:String(r),exact:Math.abs(r-v)<1e-9}}
+function slopeInfo(a,b){
+ let L=a,Rt=b;if(b.x<a.x||(b.x===a.x&&b.y<a.y)){L=b;Rt=a}
+ const run=Rt.x-L.x,rise=Rt.y-L.y;
+ if(run===0&&rise===0)return{kind:"same",rise,run,L,R:Rt,value:null,label:"Both points are in the same spot!"};
+ if(run===0)return{kind:"undefined",rise,run,L,R:Rt,value:null,label:`rise = ${rise}, run = 0, slope = ${rise}/0 → undefined`};
+ const s=simplify(rise,run),dec=fmtDec(rise,run);
+ let label=`rise = ${neg(rise)}, run = ${run}, slope = ${neg(rise)}/${run}`;
+ if(s.d!==1&&(s.n!==rise||s.d!==run))label+=` = ${neg(s.n)}/${s.d}`;
+ label+=` ${dec.exact?"=":"≈"} ${neg(dec.txt)}`;
+ return{kind:rise===0?"zero":rise>0?"positive":"negative",rise,run,L,R:Rt,value:rise/run,simp:s,dec:dec.txt,label};
+}
+function angleDeg(info){if(info.kind==="undefined")return 90;if(info.kind==="same")return 0;return Math.atan(info.rise/info.run)*180/Math.PI}
+function steepWord(info){const a=Math.abs(angleDeg(info));if(info.kind==="same")return"—";if(info.kind==="undefined")return"vertical – a cliff!";if(a===0)return"flat";if(a<15)return"gentle";if(a<40)return"medium";if(a<65)return"steep";return"super steep"}
+function parseAnswer(str){
+ const s=String(str).trim().toLowerCase().replace(/−|–/g,"-").replace(/\s+/g,"");
+ if(/^(undefined|undef|und|vertical|infinity|∞)$/.test(s))return"undefined";
+ let m=s.match(/^(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)$/);if(m){const d=+m[2];return d===0?"undefined":+m[1]/d}
+ if(/^-?(\d+\.?\d*|\.\d+)$/.test(s))return+s;
+ return NaN;
+}
+function checkAnswer(str,ans){const v=parseAnswer(str);if(ans==="undefined")return v==="undefined";if(typeof v!=="number"||isNaN(v))return false;return Math.abs(v-ans)<0.011}
+function ri(rnd,a,b){return a+Math.floor(rnd()*(b-a+1))}
+const pick=(rnd,arr)=>arr[Math.floor(rnd()*arr.length)];
+const KINDS=["positive","negative","zero","undefined"];
+function makeQuiz(rnd=Math.random){
+ const q=[];
+ {const run=ri(rnd,1,3),m=ri(rnd,1,3),x1=ri(rnd,-4,1),y1=ri(rnd,-6,Math.max(-6,6-m*run));const A={x:x1,y:y1},B={x:x1+run,y:y1+m*run};
+  q.push({type:"input",prompt:`Find the slope of the line through <b>(${A.x}, ${A.y})</b> and <b>(${B.x}, ${B.y})</b>.`,pts:[A,B],answer:m,
+   hint:`Run = ${B.x} − (${A.x}) = ${run}. Rise = ${B.y} − (${A.y}) = ${m*run}. Now divide rise ÷ run.`,explain:`rise ÷ run = ${m*run} ÷ ${run} = ${m}`})}
+ {const [rise,run]=pick(rnd,[[3,4],[2,5],[4,3],[1,3],[5,2]]);const A={x:-3,y:-2},B={x:-3+run,y:-2+rise};
+  q.push({type:"input",prompt:"Count the squares in the staircase triangle. What is the slope?",pts:[A,B],tri:true,answer:rise/run,
+   hint:`Count the blue run (squares across) and the red rise (squares up). Slope = rise/run.`,explain:`rise = ${rise}, run = ${run}, so slope = ${rise}/${run}`})}
+ {const k=ri(rnd,1,3),run=ri(rnd,1,2),x1=ri(rnd,-4,0),y1=ri(rnd,1,5);const A={x:x1,y:y1},B={x:x1+run,y:y1-k*run};
+  q.push({type:"input",prompt:`Careful, it's downhill! Find the slope through <b>(${A.x}, ${A.y})</b> and <b>(${B.x}, ${B.y})</b>.`,pts:[A,B],answer:-k,
+   hint:`Read left to right. You go across ${run} and DOWN ${k*run}, so the rise is −${k*run}.`,explain:`rise ÷ run = −${k*run} ÷ ${run} = −${k}`})}
+ {const [a,b]=pick(rnd,[[[4,2],[1,3]],[[1,2],[3,1]],[[3,4],[4,3]],[[2,5],[5,4]]]);const sa=a[0]/a[1],sb=b[0]/b[1];
+  q.push({type:"choice",prompt:`Which line is steeper? <span style="color:#5b2a86"><b>Line A</b></span> has rise ${a[0]}, run ${a[1]}. <span style="color:#1a7a3a"><b>Line B</b></span> has rise ${b[0]}, run ${b[1]}.`,lines:[a,b],choices:["Line A","Line B"],answer:sa>sb?0:1,
+   hint:"Work out each slope (rise ÷ run). The bigger number is steeper.",explain:`Line A: ${a[0]}/${a[1]} ${Number.isInteger(sa*100)?"=":"≈"} ${Math.round(sa*100)/100}, Line B: ${b[0]}/${b[1]} ${Number.isInteger(sb*100)?"=":"≈"} ${Math.round(sb*100)/100}. Line ${sa>sb?"A":"B"} has the bigger slope, so it is steeper`})}
+ {const y=ri(rnd,-4,4),x1=ri(rnd,-6,-1),x2=ri(rnd,1,6);const A={x:x1,y},B={x:x2,y};
+  q.push({type:"choice",prompt:`What kind of slope does the line through <b>(${x1}, ${y})</b> and <b>(${x2}, ${y})</b> have?`,pts:[A,B],choices:KINDS,answer:2,
+   hint:"Look at the y-values. Does the line go up or down at all?",explain:`The rise is ${neg(y)} − ${y<0?`(${neg(y)})`:y} = 0, so the slope is 0 ÷ ${x2-x1} = 0. Flat!`})}
+ {const x=ri(rnd,-4,4),y1=ri(rnd,-6,-1),y2=ri(rnd,1,6);const A={x,y:y1},B={x,y:y2};
+  q.push({type:"choice",prompt:`What kind of slope does the line through <b>(${x}, ${y1})</b> and <b>(${x}, ${y2})</b> have?`,pts:[A,B],choices:KINDS,answer:3,
+   hint:"Look at the x-values. How far across does it go?",explain:`The run is ${neg(x)} − ${x<0?`(${neg(x)})`:x} = 0, and we can't divide by 0, so the slope is undefined. It's a cliff!`})}
+ {const [r,u]=pick(rnd,[[4,12],[6,12],[8,12],[3,12]]);
+  q.push({type:"input",prompt:`🏠 A roof has a <b>${r}/12 pitch</b>: it rises ${r} inches for every 12 inches across. What is its slope? (Simplify if you can.)`,roof:[r,u],answer:r/u,
+   hint:`Slope = rise ÷ run = ${r}/12. What number divides into both ${r} and 12?`,explain:`${r}/12 = ${simplify(r,u).n}/${simplify(r,u).d}`})}
+ {const [d,t]=pick(rnd,[[150,3],[200,4],[160,2],[270,3]]);
+  q.push({type:"input",prompt:`🚂 On a distance-time graph, the Hogwarts Express travels <b>${d} km in ${t} hours</b> at a steady speed. The slope of the line is its speed. What is the speed in km per hour?`,train:[d,t],answer:d/t,
+   hint:`Rise = distance (${d} km), run = time (${t} h). Speed = ${d} ÷ ${t}.`,explain:`${d} km ÷ ${t} h = ${d/t} km per hour`})}
+ return q;
+}
+const QMAX=10,QHINT=3,QWRONG=3,QMIN=2,QTRIES=3;
+function quizPoints(hints,wrong){return Math.max(QMIN,QMAX-QHINT*hints-QWRONG*wrong)}
+
+if(typeof module!=="undefined"){module.exports={simplify,slopeInfo,angleDeg,steepWord,parseAnswer,checkAnswer,makeQuiz,quizPoints,KINDS,R}}
+else{
+// ---------- explorer ----------
+const NS="http://www.w3.org/2000/svg",U=30,PAD=20,SZ=520;
+const sx=x=>PAD+(x+R)*U,sy=y=>PAD+(R-y)*U;
+const svg=document.getElementById("plane");
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e}
+for(let i=-R;i<=R;i++){el("line",{class:"gl",x1:sx(i),y1:sy(-R),x2:sx(i),y2:sy(R)});el("line",{class:"gl",x1:sx(-R),y1:sy(i),x2:sx(R),y2:sy(i)});
+ if(i&&i%2===0){el("text",{class:"num",x:sx(i),y:sy(0)+14,"text-anchor":"middle"}).textContent=i;el("text",{class:"num",x:sx(0)-6,y:sy(i)+4,"text-anchor":"end"}).textContent=i}}
+el("line",{class:"ax",x1:sx(-R),y1:sy(0),x2:sx(R),y2:sy(0)});el("line",{class:"ax",x1:sx(0),y1:sy(-R),x2:sx(0),y2:sy(R)});
+el("text",{class:"num",x:sx(R)-4,y:sy(0)-6,"text-anchor":"end","font-weight":"bold"}).textContent="x";
+el("text",{class:"num",x:sx(0)+6,y:sy(R)+12,"font-weight":"bold"}).textContent="y";
+const gStairs=el("g",{}),lineFull=el("line",{stroke:"#5b2a86","stroke-width":2,"stroke-opacity":.35,"stroke-dasharray":"6 5"}),
+ lineSeg=el("line",{stroke:"#5b2a86","stroke-width":4,"stroke-linecap":"round"}),
+ runL=el("line",{stroke:"#2e5aa8","stroke-width":5,"stroke-linecap":"round"}),riseL=el("line",{stroke:"#c0392b","stroke-width":5,"stroke-linecap":"round"}),
+ runT=el("text",{"font-family":"Verdana,Arial,sans-serif","font-weight":"bold","font-size":15,fill:"#2e5aa8","text-anchor":"middle","paint-order":"stroke",stroke:"#fffaf0","stroke-width":4}),
+ riseT=el("text",{"font-family":"Verdana,Arial,sans-serif","font-weight":"bold","font-size":15,fill:"#c0392b","paint-order":"stroke",stroke:"#fffaf0","stroke-width":4});
+const broom=el("g",{});
+el("line",{x1:-20,y1:0,x2:18,y2:0,stroke:"#7a4a1e","stroke-width":3.5,"stroke-linecap":"round"},broom);
+el("path",{d:"M-18,-4 L-34,-10 L-31,0 L-34,10 L-18,4 Z",fill:"#d9a441",stroke:"#9a6b1e","stroke-width":1},broom);
+const sparkle=el("text",{x:-46,y:5,"font-size":12},broom);sparkle.textContent="✨";
+el("text",{x:-8,y:-3,"font-size":18,"text-anchor":"middle"},broom).textContent="🧙";
+const P={A:{x:-3,y:-2},B:{x:1,y:6}},PT={};
+for(const k of ["A","B"]){const g=el("g",{class:"pt","data-k":k});
+ el("circle",{r:22,class:"hit"},g);el("circle",{r:13,fill:"#ecb939","fill-opacity":.45},g);el("circle",{r:7,fill:k==="A"?"#7f0909":"#1a472a",stroke:"#fff","stroke-width":2},g);
+ el("text",{x:12,y:-12},g).textContent=k;PT[k]=g;}
+let drag=null;
+function toGrid(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());
+ return{x:Math.max(-R,Math.min(R,Math.round((q.x-PAD)/U-R))),y:Math.max(-R,Math.min(R,Math.round(R-(q.y-PAD)/U)))}}
+svg.addEventListener("pointerdown",e=>{const g=e.target.closest(".pt");let k=g&&g.dataset.k;
+ if(!k){const q=toGrid(e);const d=p=>Math.hypot(p.x-q.x,p.y-q.y);k=d(P.A)<=d(P.B)?"A":"B";if(d(P[k])>1.5)return}
+ drag=k;e.preventDefault();svg.setPointerCapture&&svg.setPointerCapture(e.pointerId);move(e)});
+function move(e){if(!drag)return;e.preventDefault();const q=toGrid(e);if(q.x!==P[drag].x||q.y!==P[drag].y){P[drag]=q;draw()}}
+svg.addEventListener("pointermove",move);
+["pointerup","pointercancel"].forEach(t=>svg.addEventListener(t,()=>drag=null));
+const KIND={
+ positive:i=>`<b>⬆️ Positive slope</b><br>Going <b>uphill</b> as you read left to right, like flying a broom up toward the Astronomy Tower.`,
+ negative:i=>`<b>⬇️ Negative slope</b><br>Going <b>downhill</b> as you read left to right, like sledding down to Hagrid's hut. The rise is negative because you go <i>down</i>.`,
+ zero:i=>`<b>➡️ Zero slope (flat)</b><br>Perfectly flat, like the Quidditch pitch. The rise is 0, and 0 ÷ ${i.run} = 0.`,
+ undefined:i=>`<b>🧗 Undefined slope (vertical)</b><br>Straight up and down, like a castle wall! The run is 0, and nobody, not even Dumbledore, can divide by 0.`,
+ same:i=>`<b>🤔 Same spot</b><br>Drag one point away to make a line.`};
+function per1(i){if(!["positive","negative"].includes(i.kind))return"";const v=i.value,amt=Math.abs(Math.round(v*100)/100);
+ const st=i.simp.d!==1?` (or ${Math.abs(i.simp.n)} ${i.kind==="positive"?"up":"down"} for every ${i.simp.d} across)`:"";
+ return`<div id="per1">For every <b>1 step across</b>, the line goes <b>${i.kind==="positive"?"up":"down"} ${amt}</b>${st}.</div>`}
+const meter=document.getElementById("meter");
+meter.innerHTML=`<path d="M100,20 A85,85 0 0 1 100,190" fill="none" stroke="#d8c49a" stroke-width="18"/>
+<path d="M100,20 A85,85 0 0 1 160,45" fill="none" stroke="#c0392b" stroke-width="18"/><path d="M160,45 A85,85 0 0 1 185,105" fill="none" stroke="#5fa55a" stroke-width="18"/>
+<path d="M185,105 A85,85 0 0 1 160,165" fill="none" stroke="#5fa55a" stroke-width="18"/><path d="M160,165 A85,85 0 0 1 100,190" fill="none" stroke="#c0392b" stroke-width="18"/>
+<text x="112" y="14" font-size="11" font-family="Verdana">↑ cliff</text><text x="196" y="109" font-size="11" font-family="Verdana">flat</text><text x="112" y="206" font-size="11" font-family="Verdana">↓ cliff</text>
+<line id="needle" x1="100" y1="105" x2="180" y2="105" stroke="#3b2a1a" stroke-width="5" stroke-linecap="round" style="transition:all .3s"/><circle cx="100" cy="105" r="8" fill="#7f0909"/>`;
+let info;
+function clipLine(i){ // extend line across the grid
+ if(i.kind==="undefined")return[{x:i.L.x,y:-R},{x:i.L.x,y:R}];const m=i.value,b=i.L.y-m*i.L.x;const pts=[];
+ for(const x of[-R,R]){const y=m*x+b;if(y>=-R&&y<=R)pts.push({x,y})}
+ if(m!==0)for(const y of[-R,R]){const x=(y-b)/m;if(x>-R&&x<R)pts.push({x,y})}
+ return pts.length>=2?[pts[0],pts[1]]:[i.L,i.R]}
+function draw(){
+ info=slopeInfo(P.A,P.B);const{L,R:Rt}=info;
+ for(const k of["A","B"])PT[k].setAttribute("transform",`translate(${sx(P[k].x)},${sy(P[k].y)})`);
+ lineSeg.setAttribute("x1",sx(L.x));lineSeg.setAttribute("y1",sy(L.y));lineSeg.setAttribute("x2",sx(Rt.x));lineSeg.setAttribute("y2",sy(Rt.y));
+ if(info.kind==="same"){lineFull.style.display="none"}else{const[f,t]=clipLine(info);lineFull.style.display="";lineFull.setAttribute("x1",sx(f.x));lineFull.setAttribute("y1",sy(f.y));lineFull.setAttribute("x2",sx(t.x));lineFull.setAttribute("y2",sy(t.y))}
+ // run along bottom/top from L to corner (Rt.x, L.y), rise from corner to Rt
+ runL.setAttribute("x1",sx(L.x));runL.setAttribute("y1",sy(L.y));runL.setAttribute("x2",sx(Rt.x));runL.setAttribute("y2",sy(L.y));
+ riseL.setAttribute("x1",sx(Rt.x));riseL.setAttribute("y1",sy(L.y));riseL.setAttribute("x2",sx(Rt.x));riseL.setAttribute("y2",sy(Rt.y));
+ runL.style.display=info.run?"":"none";riseL.style.display=info.rise?"":"none";
+ runT.setAttribute("x",(sx(L.x)+sx(Rt.x))/2);runT.setAttribute("y",sy(L.y)+(info.rise>0?22:-10));runT.textContent=info.run?`run = ${info.run}`:"";
+ riseT.setAttribute("x",sx(Rt.x)+8);riseT.setAttribute("y",(sy(L.y)+sy(Rt.y))/2+5);riseT.textContent=info.rise?`rise = ${neg(info.rise)}`:"";
+ if(sx(Rt.x)>SZ-90){riseT.setAttribute("text-anchor","end");riseT.setAttribute("x",sx(Rt.x)-10)}else riseT.setAttribute("text-anchor","start");
+ // small staircase using simplified steps
+ gStairs.innerHTML="";
+ if(info.simp&&info.rise!==0){const{n,d}=info.simp,steps=info.run/d;if(steps>1){let x=L.x,y=L.y,path=`M${sx(x)},${sy(y)}`;for(let s=0;s<steps;s++){x+=d;path+=` L${sx(x)},${sy(y)}`;y+=n;path+=` L${sx(x)},${sy(y)}`}
+  el("path",{d:path,fill:"none",stroke:"#d3a625","stroke-width":2.5,"stroke-dasharray":"4 3"},gStairs)}}
+ document.getElementById("coords").innerHTML=`Reading left to right: from <b>(${L.x}, ${L.y})</b> to <b>(${Rt.x}, ${Rt.y})</b>`;
+ const r=document.getElementById("readout");
+ r.innerHTML=info.kind==="same"?info.label:info.label.replace(/rise = [^,]+/,m=>`<span class="rise">${m}</span>`).replace(/run = [^,]+/,m=>`<span class="run">${m}</span>`);
+ document.getElementById("kind").innerHTML=KIND[info.kind](info)+per1(info)+(info.simp&&info.run/info.simp.d>1&&info.rise?`<div class="tip">🪜 The dashed gold staircase shows ${info.run/info.simp.d} equal steps of ${info.simp.d} across and ${Math.abs(info.simp.n)} ${info.simp.n>0?"up":"down"}.</div>`:"");
+ const ang=angleDeg(info);const nd=document.getElementById("needle");const rad=-ang*Math.PI/180;
+ nd.setAttribute("x2",100+80*Math.cos(rad));nd.setAttribute("y2",105+80*Math.sin(rad));
+ document.getElementById("mcap").textContent=info.kind==="same"?"—":`${steepWord(info)} (${Math.round(Math.abs(ang))}°)`;
+}
+document.querySelectorAll(".presets button").forEach(b=>b.onclick=()=>{
+ const p=b.dataset.p;if(p==="up"){P.A={x:-3,y:-2};P.B={x:1,y:6}}else if(p==="down"){P.A={x:-4,y:3};P.B={x:4,y:-1}}else if(p==="flat"){P.A={x:-5,y:2};P.B={x:3,y:2}}else if(p==="cliff"){P.A={x:2,y:-4};P.B={x:2,y:5}}
+ else{do{P.A={x:Math.floor(Math.random()*13)-6,y:Math.floor(Math.random()*13)-6};P.B={x:Math.floor(Math.random()*13)-6,y:Math.floor(Math.random()*13)-6}}while(P.A.x===P.B.x&&P.A.y===P.B.y)}
+ draw()});
+let t0=performance.now();
+function fly(now){
+ if(info&&info.kind!=="same"){const ph=((now-t0)/2600)%2,f=ph<1?ph:2-ph,dir=ph<1?1:-1;
+  const x=sx(info.L.x)+(sx(info.R.x)-sx(info.L.x))*f,y=sy(info.L.y)+(sy(info.R.y)-sy(info.L.y))*f;
+  let a=Math.atan2((sy(info.R.y)-sy(info.L.y))*dir,(sx(info.R.x)-sx(info.L.x))*dir)*180/Math.PI;
+  const flip=Math.abs(a)>90;broom.setAttribute("transform",`translate(${x},${y-10}) rotate(${flip?a+180:a}) scale(${flip?-1:1},1)`);broom.style.display=""}
+ else broom.style.display="none";
+ requestAnimationFrame(fly)}
+draw();requestAnimationFrame(fly);
+
+// ---------- mini diagrams ----------
+function tri(rise,run,o={}){ // right triangle, rise may be negative (downhill)
+ const W=o.w||300,H=o.h||150,m=34,s=Math.min((W-2*m-40)/run,(H-2*m)/Math.abs(rise)),w=run*s,h=Math.abs(rise)*s;
+ const x0=m,yb=H-m,up=rise>0;const L={x:x0,y:up?yb:yb-h},Rr={x:x0+w,y:up?yb-h:yb};
+ const cx=Rr.x,cy=L.y; // corner below/above right point
+ const runLbl=o.runLbl||`run = ${run}`,riseLbl=o.riseLbl||`rise = ${neg(rise)}`;
+ return`<svg viewBox="0 0 ${W} ${H}">${o.extra||""}
+ <polygon points="${L.x},${L.y} ${cx},${cy} ${Rr.x},${Rr.y}" fill="${o.fill||"#e8dcc0"}" stroke="none"/>
+ <line x1="${L.x}" y1="${L.y}" x2="${Rr.x}" y2="${Rr.y}" stroke="#5b2a86" stroke-width="4" stroke-linecap="round"/>
+ <line x1="${L.x}" y1="${cy}" x2="${cx}" y2="${cy}" stroke="#2e5aa8" stroke-width="4"/><line x1="${cx}" y1="${cy}" x2="${Rr.x}" y2="${Rr.y}" stroke="#c0392b" stroke-width="4"/>
+ <text x="${(L.x+cx)/2}" y="${cy+(up?20:-8)}" text-anchor="middle" font-family="Verdana" font-size="13" font-weight="bold" fill="#2e5aa8">${runLbl}</text>
+ <text x="${cx+6}" y="${(cy+Rr.y)/2+5}" font-family="Verdana" font-size="13" font-weight="bold" fill="#c0392b">${riseLbl}</text>
+ ${o.icon?`<text x="${o.ix??(L.x+w*.45)}" y="${o.iy??((L.y+Rr.y)/2-8)}" font-size="${o.is||22}" text-anchor="middle">${o.icon}</text>`:""}</svg>`}
+function stairsSvg(){const x0=110,yb=135,rs=18*2.2,rn=27*2.2;let p=`M${x0},${yb}`,x=x0,y=yb;for(let i=0;i<3;i++){p+=` L${x},${y-rs}`;y-=rs;p+=` L${x+rn},${y}`;x+=rn}
+ return`<svg viewBox="0 0 300 150"><path d="${p} L${x},${yb} Z" fill="#e8dcc0" stroke="#3b2a1a" stroke-width="2"/>
+ <line x1="${x0}" y1="${yb}" x2="${x0}" y2="${yb-rs}" stroke="#c0392b" stroke-width="5"/><line x1="${x0}" y1="${yb-rs}" x2="${x0+rn}" y2="${yb-rs}" stroke="#2e5aa8" stroke-width="5"/>
+ <text x="${x0-6}" y="${yb-rs/2+5}" text-anchor="end" font-family="Verdana" font-size="12" font-weight="bold" fill="#c0392b">rise 18 cm</text>
+ <text x="${x0+rn/2}" y="${yb-rs-8}" text-anchor="middle" font-family="Verdana" font-size="12" font-weight="bold" fill="#2e5aa8">run 27 cm</text>
+ <line x1="${x0}" y1="${yb}" x2="${x}" y2="${y}" stroke="#5b2a86" stroke-width="2" stroke-dasharray="5 4"/></svg>`}
+function trainSvg(){const X=t=>40+t*48,Y=d=>130-d*0.36;
+ return`<svg viewBox="0 0 300 160"><line x1="40" y1="130" x2="285" y2="130" stroke="#6b5840" stroke-width="2"/><line x1="40" y1="130" x2="40" y2="12" stroke="#6b5840" stroke-width="2"/>
+ ${[1,2,3,4,5].map(t=>`<text x="${X(t)}" y="144" font-size="10" font-family="Verdana" text-anchor="middle">${t}</text>`).join("")}
+ ${[100,200,300].map(d=>`<text x="34" y="${Y(d)+4}" font-size="10" font-family="Verdana" text-anchor="end">${d}</text><line x1="40" x2="285" y1="${Y(d)}" y2="${Y(d)}" stroke="#e3d3b0"/>`).join("")}
+ <text x="160" y="157" font-size="10" font-family="Verdana" text-anchor="middle">time (hours)</text><text x="12" y="70" font-size="10" font-family="Verdana" transform="rotate(-90 12 70)" text-anchor="middle">distance (km)</text>
+ <polyline points="${X(0)},${Y(0)} ${X(2)},${Y(120)} ${X(3)},${Y(120)} ${X(5)},${Y(300)}" fill="none" stroke="#7f0909" stroke-width="4" stroke-linejoin="round"/>
+ <text x="${X(1)-8}" y="${Y(60)-6}" font-size="11" font-family="Verdana" fill="#7f0909" text-anchor="end">60 km/h</text>
+ <text x="${X(2.5)}" y="${Y(120)-8}" font-size="11" font-family="Verdana" text-anchor="middle">stop</text>
+ <text x="${X(4)+6}" y="${Y(210)+12}" font-size="11" font-family="Verdana" fill="#7f0909">90 km/h</text>
+ <text x="${X(5)-4}" y="${Y(300)-4}" font-size="16" text-anchor="end">🚂</text></svg>`}
+function signSvg(){return`<svg viewBox="0 0 300 150"><g transform="translate(62,75)"><rect x="-38" y="-38" width="76" height="76" transform="rotate(45)" fill="#f2c200" stroke="#222" stroke-width="4" rx="6"/>
+ <path d="M-28,10 L20,-14 L20,10 Z" fill="#222"/><text x="0" y="32" text-anchor="middle" font-family="Verdana" font-weight="bold" font-size="17">10%</text></g>
+ <polygon points="140,120 280,120 280,106" fill="#9a9a9a"/><line x1="140" y1="120" x2="280" y2="106" stroke="#5b2a86" stroke-width="4"/>
+ <line x1="140" y1="120" x2="280" y2="120" stroke="#2e5aa8" stroke-width="4"/><line x1="280" y1="120" x2="280" y2="106" stroke="#c0392b" stroke-width="4"/>
+ <text x="210" y="140" text-anchor="middle" font-family="Verdana" font-size="12" font-weight="bold" fill="#2e5aa8">run = 100 m</text>
+ <text x="276" y="98" text-anchor="end" font-family="Verdana" font-size="12" font-weight="bold" fill="#c0392b">rise = 10 m</text></svg>`}
+const CARDS=[
+ {c:"#0e1a40",t:"♿ Wheelchair ramp",svg:tri(1,12,{runLbl:"12 across",riseLbl:"1 up",icon:"♿",ix:150,iy:85}),
+  body:`A ramp has to be <b>gentle</b> so a wheelchair can roll up safely. Ontario's Building Code says a ramp can be no steeper than <b>1 in 12</b>: 1 unit up for every 12 units across. Outdoor public ramps under Ontario's accessibility standards must be even gentler, <b>1 in 15</b>.`,
+  work:`slope = 1/12 ≈ 0.08<br>To climb 60 cm (about 3 steps): 60 × 12 = 720 cm, so the ramp needs to go <b>7.2 m</b> across!`},
+ {c:"#7f0909",t:"🏠 Roof pitch",svg:tri(6,12,{runLbl:"12 across",riseLbl:"6 up",icon:"🏠",fill:"#c9a27a"}),
+  body:`Builders describe a roof's steepness as a <b>pitch</b>, like <b>6/12</b>: the roof rises 6 inches for every 12 inches across.`,
+  work:`slope = 6/12 = 1/2 = 0.5<br>A 12/12 roof has slope 12/12 = 1, a 45° angle. Steeper roofs shed snow faster!`},
+ {c:"#1a472a",t:"🪜 Stairs",svg:stairsSvg(),
+  body:`Each step has a <span class="rise">rise</span> (how tall it is) and a <span class="run">run</span> (how deep the part you step on is). The steps make a real staircase for the slope!`,
+  work:`A step 18 cm tall and 27 cm deep:<br>slope = 18/27 = 2/3 ≈ 0.67<br>That's about 8 times steeper than a 1-in-12 ramp (0.08).`},
+ {c:"#ecb939",t:"⛷️ Ski hills",svg:`<svg viewBox="0 0 300 150"><polygon points="20,40 280,66 280,130 20,130" fill="#eef4fb"/><line x1="20" y1="40" x2="280" y2="66" stroke="#1a7a3a" stroke-width="4"/><text x="150" y="44" font-family="Verdana" font-size="12" fill="#1a7a3a" font-weight="bold" text-anchor="middle">🟢 bunny hill: −1/10</text>
+  <line x1="20" y1="40" x2="120" y2="90" stroke="#222" stroke-width="4"/><text x="128" y="100" font-family="Verdana" font-size="12" font-weight="bold">◆ black diamond: −1/2</text><text x="40" y="34" font-size="18">⛷️</text></svg>`,
+  body:`Reading left to right, skiing <b>down</b> a hill gives a <b>negative</b> slope. Resorts rate runs compared with their own hills, so there's no single rule, but here's a rough idea:`,
+  work:`Bunny hill: drops about 1 m for every 10 m across → slope −1/10 = −0.1<br>Black diamond: drops about 1 m for every 2 m across → slope −1/2 = −0.5<br>Ignoring the minus sign, 0.5 is 5 times 0.1: much steeper!`},
+ {c:"#5b2a86",t:"🚚 Road grade signs",svg:signSvg(),
+  body:`Road signs show steepness as a <b>percent grade</b>. A <b>10% grade</b> means the road goes 10 m up (or down) for every 100 m across. Trucks see these signs before steep hills.`,
+  work:`slope = 10/100 = 1/10 = 0.1<br>percent grade = slope × 100 = 10%<br>Over 1 km (1000 m) across, the road climbs 1000 × 0.1 = <b>100 m</b>.`},
+ {c:"#7f0909",t:"🚂 Hogwarts Express: distance-time graph",svg:trainSvg(),
+  body:`When you graph <b>distance</b> (up) against <b>time</b> (across), the slope is the <b>speed</b>. Steeper line = faster train. A flat part means the train is stopped (speed 0). <span class="note">(Pretend numbers!)</span>`,
+  work:`First 2 hours: 120 km ÷ 2 h = <b>60 km/h</b><br>Station stop: 0 km ÷ 1 h = 0 km/h (flat)<br>Last 2 hours: 180 km ÷ 2 h = <b>90 km/h</b> (steepest = fastest)`}];
+document.getElementById("cards").innerHTML=CARDS.map(c=>`<div class="rl" style="--c:${c.c}"><h3>${c.t}</h3>${c.svg}<p>${c.body}</p><div class="work">${c.work}</div></div>`).join("");
+
+// ---------- quiz ----------
+function gridSvg(pts,o={}){const n=7,u=20,pd=10,S=2*n*u+2*pd,X=x=>pd+(x+n)*u,Y=y=>pd+(n-y)*u;let s=`<svg viewBox="0 0 ${S} ${S}">`;
+ for(let i=-n;i<=n;i++)s+=`<line x1="${X(i)}" y1="${Y(-n)}" x2="${X(i)}" y2="${Y(n)}" stroke="#e3d3b0"/><line x1="${X(-n)}" y1="${Y(i)}" x2="${X(n)}" y2="${Y(i)}" stroke="#e3d3b0"/>`;
+ s+=`<line x1="${X(-n)}" y1="${Y(0)}" x2="${X(n)}" y2="${Y(0)}" stroke="#6b5840" stroke-width="2"/><line x1="${X(0)}" y1="${Y(-n)}" x2="${X(0)}" y2="${Y(n)}" stroke="#6b5840" stroke-width="2"/>`;
+ if(o.lines){const col=["#5b2a86","#1a7a3a"],st=[{x:-6,y:-5},{x:0,y:-5}];o.lines.forEach(([ri,ru],k)=>{const a=st[k];s+=`<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(a.x+ru)}" y2="${Y(a.y+ri)}" stroke="${col[k]}" stroke-width="4" stroke-linecap="round"/><text x="${X(a.x+ru)+4}" y="${Y(a.y+ri)}" font-family="Verdana" font-weight="bold" fill="${col[k]}">${"AB"[k]}</text>`})}
+ if(pts){const[A,B]=pts;s+=`<line x1="${X(A.x)}" y1="${Y(A.y)}" x2="${X(B.x)}" y2="${Y(B.y)}" stroke="#5b2a86" stroke-width="3"/>`;
+  if(o.tri)s+=`<line x1="${X(A.x)}" y1="${Y(A.y)}" x2="${X(B.x)}" y2="${Y(A.y)}" stroke="#2e5aa8" stroke-width="4"/><line x1="${X(B.x)}" y1="${Y(A.y)}" x2="${X(B.x)}" y2="${Y(B.y)}" stroke="#c0392b" stroke-width="4"/>`;
+  for(const p of pts)s+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="5" fill="#7f0909"/>`}
+ return s+"</svg>"}
+const $=id=>document.getElementById(id);
+let Q,qi,qpts,qh,qw,qdone,qright;
+function qstart(){Q=makeQuiz();qi=0;qpts=0;qright=0;$("qbox").style.display="";$("done").style.display="none";qshow()}
+function qstats(){$("qpts").textContent=`🏆 ${qpts} house points`;$("qcnt").textContent=`Spell ${Math.min(qi+1,Q.length)}/${Q.length}`;$("qpbar").style.width=(100*(qi+(qdone?1:0))/Q.length)+"%"}
+function qshow(){
+ const q=Q[qi];qh=0;qw=0;qdone=false;
+ $("qprompt").innerHTML=q.prompt;
+ $("qdiag").innerHTML=q.pts||q.lines?gridSvg(q.tri||q.lines?q.pts:q.pts,{tri:q.tri,lines:q.lines}):q.roof?tri(q.roof[0],q.roof[1],{runLbl:"12 in across",riseLbl:`${q.roof[0]} in up`,icon:"🏠",fill:"#c9a27a"}):"";
+ $("qinrow").style.display=q.type==="input"?"":"none";$("qin").value="";$("qin").className="";$("qin").disabled=false;
+ $("qchoices").innerHTML=q.type==="choice"?q.choices.map((c,i)=>`<button data-i="${i}">${c}</button>`).join(""):"";
+ $("qhint").style.display="none";$("qhintb").style.display="";$("qhintb").disabled=false;$("qnext").style.display="none";$("qfb").textContent="";qstats();
+}
+function qfinish(ok){
+ const q=Q[qi];qdone=true;let p=0;if(ok){p=quizPoints(qh,qw);qpts+=p;qright++}
+ $("qfb").innerHTML=ok?`🎉 Correct! +${p} house points. <span style="font-weight:normal">${q.explain}</span>`:`The answer: ${q.explain}. You'll get the next one! 💪`;
+ $("qin").disabled=true;$("qchoices").querySelectorAll("button").forEach(b=>b.disabled=true);$("qhintb").style.display="none";
+ $("qnext").style.display="";$("qnext").textContent=qi<Q.length-1?"Next spell ➜":"Finish ✨";qstats();
+}
+function qwrong(msg){qw++;if(qw>=QTRIES)return qfinish(false);$("qfb").textContent=msg+` (${QTRIES-qw} tr${QTRIES-qw>1?"ies":"y"} left)`;if(!qh)$("qfb").textContent+=" Try the hint!";$("qin").classList.remove("bad");void $("qin").offsetWidth;$("qin").classList.add("bad")}
+function qcheck(){if(qdone)return;const q=Q[qi],v=$("qin").value;const pv=parseAnswer(v);
+ if(v.trim()===""||(typeof pv==="number"&&isNaN(pv))){$("qfb").textContent="Type a number, a fraction like 3/4, or 'undefined'.";return}
+ if(checkAnswer(v,q.answer))return qfinish(true);
+ qwrong(typeof q.answer==="number"&&typeof pv==="number"&&Math.abs(pv+q.answer)<0.011&&q.answer!==0?"So close! Check the sign: is it uphill or downhill?":typeof pv==="number"&&q.answer!=="undefined"&&Math.abs(pv-1/q.answer)<0.011?"Flipped! Remember: rise (up) goes on top, run (across) on the bottom.":"Not quite.")}
+$("qcheck").onclick=qcheck;$("qin").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();qdone?$("qnext").click():qcheck()}});
+$("qchoices").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||qdone)return;if(+b.dataset.i===Q[qi].answer)qfinish(true);else{b.disabled=true;qwrong("Not quite.")}});
+$("qhintb").onclick=()=>{if(qdone)return;qh=1;$("qhint").textContent="💡 "+Q[qi].hint;$("qhint").style.display="block";$("qhintb").disabled=true};
+$("qnext").onclick=()=>{qi++;if(qi>=Q.length){$("qbox").style.display="none";$("done").style.display="block";const max=Q.length*QMAX;
+ $("dmsg").innerHTML=`You got <b>${qright}</b> of ${Q.length} spells right and earned <b>${qpts}</b> of ${max} house points!<br>${qpts>=max*.85?"Outstanding! 🏆":qpts>=max*.6?"Exceeds Expectations! ⭐":"Acceptable – practice makes perfect! 📚"}`;$("qpbar").style.width="100%";$("done").scrollIntoView({block:"nearest"})}else qshow()};
+$("again").onclick=qstart;
+window.currentSpell=()=>Q[qi]; // handy for testing
+qstart();
+}
+</script>
+</body></html>
